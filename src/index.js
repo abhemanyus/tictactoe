@@ -1,24 +1,46 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
+const X = 'X';
+const O = 'O';
 
 class Square extends React.Component {
   render() {
     return (
-      <button className="square">
-        {/* TODO */}
+      <button className="square" onClick={() => {this.props.sign || this.props.gotClicked(this.props.value)}}>
+        {this.props.sign}
       </button>
     );
   }
 }
 
 class Board extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      board: [],
+      turn: 0
+    };
+    this.gotClicked = this.gotClicked.bind(this);
+  }
   renderSquare(i) {
-    return <Square />;
+    return <Square sign={this.state.board[i]} value={i} gotClicked={this.gotClicked}/>;
+  }
+
+  gotClicked(sqrNum) {
+    this.setState(
+      (prevState) => {
+        let board = prevState.board;
+        board[sqrNum] = prevState.turn % 2 === 0 ? X : O;
+        let turn = prevState.turn + 1;
+
+        return( { board, turn } )
+      }
+    );
   }
 
   render() {
-    const status = 'Next player: X';
+    const status = `Next player: ${this.state.turn % 2 === 0 ? X : O}`;
 
     return (
       <div>
@@ -52,7 +74,7 @@ class Game extends React.Component {
         </div>
         <div className="game-info">
           <div>{/* status */}</div>
-          <ol>{/* TODO */}</ol>
+          <ol>{/* info */}</ol>
         </div>
       </div>
     );
