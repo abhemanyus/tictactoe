@@ -48,25 +48,37 @@ class Game extends React.Component {
     super(props);
     this.state = {
       history: [ { board: Array(9).fill(null) } ],
+      step: 0,
       turn: true
     };
     this.onClick = this.onClick.bind(this);
+    this.jumpTo = this.jumpTo.bind(this);
+  }
+
+  jumpTo(move) {
+    this.setState( prevState => ({
+      step: move,
+      turn: (move % 2) === 0,
+      history: prevState.history.slice(0, move+1)
+    }));
   }
 
   onClick(sqrNum) {
-    const board = this.state.history[this.state.history.length - 1].board.slice();
+    const history = this.state.history.slice(0, this.state.step + 1);
+    const board = history[history.length - 1].board.slice();
     if (board[sqrNum] || calculateWinner(board)) {
       return;
     }
     board[sqrNum] = this.state.turn ? X : O;
     this.setState( prevState => ( {
       history: prevState.history.concat([{board}]),
-      turn: !prevState.turn
+      step: history.length,
+      turn: (history.length % 2) === 0
     } ) );
   }
 
   render() {
-    const board = this.state.history[this.state.history.length - 1].board;
+    const board = this.state.history[this.state.step].board;
     const winner = calculateWinner(board);
     let status;
     
@@ -76,6 +88,25 @@ class Game extends React.Component {
     else {
       status = `Next move: ${this.state.turn ? X: O}`;
     }
+    const moves = this.state.history.map((step, move) => {
+      let mv = 0;
+      if(move) {
+        const prevStep = this.state.history[move-1];
+        prevStep.board.forEach((item, index) => {
+          if(item !== step.board[index]) {
+            mv = index;
+            return;
+          }
+        });
+      } 
+      const desc = move ? `${(move % 2 === 0) ? O : X} at (${(mv % 3) + 1},${Math.floor(mv/3) + 1})` : "Go to game start";
+      return (
+        <li key={move}>
+          <button onClick={() => this.jumpTo(move)}>{desc}</button>
+        </li>
+      );
+    });
+
     return (
       <div className="game">
         <div className="game-board">
@@ -86,7 +117,7 @@ class Game extends React.Component {
         </div>
         <div className="game-info">
           <div>{status}</div>
-          <ol>{/* info */}</ol>
+          <ol>{moves}</ol>
         </div>
       </div>
     );
